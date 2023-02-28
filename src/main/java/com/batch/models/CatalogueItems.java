@@ -9,13 +9,15 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.time.Instant;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "catalogue_items")
+//@Table(name = "catalogue_items")
+@Table(name = "sku_batch_jobs")
 public class CatalogueItems {
 
     @Id
@@ -32,5 +34,7 @@ public class CatalogueItems {
     private Double price;
     @Column(name = "inventory")
     private Integer inventory;
+    @Column(name = "updated_on")
+    private Instant updatedOn;
 
 }
