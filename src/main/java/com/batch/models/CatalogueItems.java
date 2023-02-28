@@ -21,16 +21,16 @@ public class CatalogueItems {
     @Id
     private Long id;
     @Column(name = "sku_number")
-    private String SKU_NUMBER;
+    private String skuNumber;
     @Column(name = "item_name")
-    private String ITEM_NAME;
+    private String itemName;
     @Column(name = "description")
-    private String DESCRIPTION;
+    private String description;
     @Column(name = "category")
-    private String CATEGORY;
+    private String category;
     @Column(name = "price")
-    private Double PRICE;
+    private Double price;
     @Column(name = "inventory")
-    private Integer INVENTORY;
+    private Integer inventory;
 
 }

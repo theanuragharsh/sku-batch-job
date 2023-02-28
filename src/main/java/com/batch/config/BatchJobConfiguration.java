@@ -48,7 +48,7 @@ public class BatchJobConfiguration {
     public ItemWriter<CatalogueItems> writer() {
         JdbcBatchItemWriter<CatalogueItems> writer = new JdbcBatchItemWriter<>();
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
-        writer.setSql("INSERT INTO SKU_BATCH_JOBS (id, ITEM_NAME, SKU_NUMBER, DESCRIPTION, CATEGORY, PRICE, INVENTORY) VALUES (:id, :ITEM_NAME, :SKU_NUMBER, :DESCRIPTION, :CATEGORY, :PRICE, :INVENTORY)");
+        writer.setSql("INSERT INTO SKU_BATCH_JOBS (id, item_name, sku_number, description, category, price, inventory) VALUES (:id, :itemName, :skuNumber, :description, :category, :price, :inventory)");
         writer.setDataSource(targetDataSource);
         return writer;
     }
