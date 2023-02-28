@@ -30,9 +30,22 @@ public class BatchJobConfiguration {
     @Autowired
     private DataSource targetDataSource;
 
+    @Autowired
+    private CatalogueItemProcessor catalogueItemProcessor;
+
     @Bean
-    public CatalogueItemProcessor processor() {
-        return new CatalogueItemProcessor();
+    public Job updatePriceByTenPercentJob() {
+        return jobBuilderFactory.get("updatePriceByTenPercentJob").incrementer(new RunIdIncrementer()).start(step1()).build();
+    }
+
+    @Bean
+    public Step step1() {
+        return stepBuilderFactory
+                .get("step1").<CatalogueItems, CatalogueItems>chunk(10)
+                .reader(reader())
+                .processor(catalogueItemProcessor)
+                .writer(writer())
+                .build();
     }
 
     @Bean
@@ -45,22 +58,18 @@ public class BatchJobConfiguration {
     }
 
     @Bean
+    public CatalogueItemProcessor processor() {
+        return new CatalogueItemProcessor();
+    }
+
+    @Bean
     public ItemWriter<CatalogueItems> writer() {
+
         JdbcBatchItemWriter<CatalogueItems> writer = new JdbcBatchItemWriter<>();
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>());
         writer.setSql("INSERT INTO SKU_BATCH_JOBS (id, item_name, sku_number, description, category, price, inventory) VALUES (:id, :itemName, :skuNumber, :description, :category, :price, :inventory)");
         writer.setDataSource(targetDataSource);
         return writer;
-    }
-
-    @Bean
-    public Step step1() {
-        return stepBuilderFactory.get("step1").<CatalogueItems, CatalogueItems>chunk(10).reader(reader()).writer(writer()).build();
-    }
-
-    @Bean
-    public Job exportJob() {
-        return jobBuilderFactory.get("exportjob").incrementer(new RunIdIncrementer()).start(step1()).build();
     }
 
 

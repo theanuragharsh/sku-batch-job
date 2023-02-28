@@ -2,11 +2,14 @@ package com.batch.config;
 
 import com.batch.models.CatalogueItems;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CatalogueItemProcessor implements ItemProcessor<CatalogueItems, CatalogueItems> {
 
     @Override
     public CatalogueItems process(CatalogueItems catalogueItems) throws Exception {
+        catalogueItems.setPrice(catalogueItems.getPrice()*1000);
         return catalogueItems;
     }
 }

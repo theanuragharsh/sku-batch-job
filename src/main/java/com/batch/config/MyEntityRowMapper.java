@@ -2,10 +2,12 @@ package com.batch.config;
 
 import com.batch.models.CatalogueItems;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@Component
 public class MyEntityRowMapper implements RowMapper<CatalogueItems> {
 
     @Override
