@@ -95,17 +95,26 @@ public class BatchJobConfiguration {
     }*/
 
 
+//    @Bean
+//    public RepositoryItemReader<CatalogueItems> reader2() {
+//        HashMap<String, Sort.Direction> stringSortHashMap = new HashMap<>();
+//        stringSortHashMap.put("id", Sort.Direction.ASC);
+//        RepositoryItemReader<CatalogueItems> repositoryItemReader = new RepositoryItemReader<>();
+//        repositoryItemReader.setRepository(catalogueItemRepo);
+//        repositoryItemReader.setMethodName("findAll");
+//        repositoryItemReader.setPageSize(10);
+//        repositoryItemReader.setSort(stringSortHashMap);
+//        return repositoryItemReader;
+//    }
     @Bean
-    public RepositoryItemReader<CatalogueItems> reader2() {
-        HashMap<String, Sort.Direction> stringSortHashMap = new HashMap<>();
-        stringSortHashMap.put("id", Sort.Direction.ASC);
-        RepositoryItemReader<CatalogueItems> repositoryItemReader = new RepositoryItemReader<>();
-        repositoryItemReader.setRepository(catalogueItemRepo);
-        repositoryItemReader.setMethodName("findAll");
-        repositoryItemReader.setPageSize(10);
-        repositoryItemReader.setSort(stringSortHashMap);
-        return repositoryItemReader;
+    public JdbcCursorItemReader<CatalogueItemJob> reader2() {
+        JdbcCursorItemReader<CatalogueItemJob> reader2 = new JdbcCursorItemReader<>();
+        reader2.setDataSource(dataSource);
+        reader2.setSql("SELECT * FROM SKU_BATCH_JOBS");
+        reader2.setRowMapper(new MyEntityRowMapper2());
+        return reader2;
     }
+
 
     @Bean
     public JobProcessor jobProcessor() {
@@ -128,7 +137,7 @@ public class BatchJobConfiguration {
     @Bean
     public Step step2() {
         return stepBuilderFactory.get("step2")
-                .<CatalogueItems, CatalogueItemJob>chunk(10)
+                .<CatalogueItemJob, CatalogueItemJob>chunk(10)
                 .reader(reader2())
                 .writer(writer2()).build();
     }
