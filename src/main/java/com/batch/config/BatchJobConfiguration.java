@@ -1,6 +1,8 @@
 package com.batch.config;
 
+import com.batch.models.CatalogueItemJob;
 import com.batch.models.CatalogueItems;
+import com.batch.repo.CatalogueItemJobRepo;
 import com.batch.repo.CatalogueItemRepo;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -8,13 +10,16 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 
 @EnableBatchProcessing
 @Configuration
@@ -30,13 +35,17 @@ public class BatchJobConfiguration {
     private DataSource targetDataSource;
     @Autowired
     private CatalogueItemRepo catalogueItemRepo;
+    @Autowired
+    private CatalogueItemJobRepo catalogueItemJobRepo;
 
     @Autowired
     private CatalogueItemProcessor catalogueItemProcessor;
+//    @Autowired
+//    private JobProcessor jobProcessor;
 
     @Bean
     public Job updatePriceByTenPercentJob() {
-        return jobBuilderFactory.get("updatePriceByTenPercentJob").incrementer(new RunIdIncrementer()).start(step1()).build();
+        return jobBuilderFactory.get("updatePriceByTenPercentJob").incrementer(new RunIdIncrementer()).start(step1()).next(step2()).build();
     }
 
     @Bean
@@ -84,4 +93,45 @@ public class BatchJobConfiguration {
         writer.setDataSource(targetDataSource);
         return writer;
     }*/
+
+
+    @Bean
+    public RepositoryItemReader<CatalogueItems> reader2() {
+        HashMap<String, Sort.Direction> stringSortHashMap = new HashMap<>();
+        stringSortHashMap.put("id", Sort.Direction.ASC);
+        RepositoryItemReader<CatalogueItems> repositoryItemReader = new RepositoryItemReader<>();
+        repositoryItemReader.setRepository(catalogueItemRepo);
+        repositoryItemReader.setMethodName("findAll");
+        repositoryItemReader.setPageSize(10);
+        repositoryItemReader.setSort(stringSortHashMap);
+        return repositoryItemReader;
+    }
+
+    @Bean
+    public JobProcessor jobProcessor() {
+        return new JobProcessor();
+    }
+
+    @Bean
+    public RepositoryItemWriter<CatalogueItemJob> writer2() {
+        RepositoryItemWriter<CatalogueItemJob> catalogueItemJobRepositoryItemWriter = new RepositoryItemWriter<>();
+        catalogueItemJobRepositoryItemWriter.setRepository(catalogueItemJobRepo);
+        catalogueItemJobRepositoryItemWriter.setMethodName("save");
+        return catalogueItemJobRepositoryItemWriter;
+    }
+
+//    @Bean
+//    public Job job2() {
+//        return jobBuilderFactory.get("job2").incrementer(new RunIdIncrementer()).start(step2()).build();
+//    }
+
+    @Bean
+    public Step step2() {
+        return stepBuilderFactory.get("step2")
+                .<CatalogueItems, CatalogueItemJob>chunk(10)
+                .reader(reader2())
+                .writer(writer2()).build();
+    }
+
+
 }
