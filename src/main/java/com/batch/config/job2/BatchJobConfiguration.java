@@ -1,5 +1,9 @@
-package com.batch.config;
+package com.batch.config.job2;
 
+import com.batch.config.CatalogueItemProcessor;
+import com.batch.config.JobProcessor;
+import com.batch.config.MyEntityRowMapper;
+import com.batch.config.MyEntityRowMapper2;
 import com.batch.models.CatalogueItemJob;
 import com.batch.models.CatalogueItems;
 import com.batch.repo.CatalogueItemJobRepo;
