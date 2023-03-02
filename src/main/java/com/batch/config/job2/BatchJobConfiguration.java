@@ -14,6 +14,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
@@ -23,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
+import java.util.Collections;
 
 @EnableBatchProcessing
 @Configuration
@@ -44,12 +45,10 @@ public class BatchJobConfiguration {
 
     @Autowired
     private CatalogueItemProcessor catalogueItemProcessor;
-//    @Autowired
-//    private JobProcessor jobProcessor;
 
     @Bean
     public Job updatePriceByTenPercentJob() {
-        return jobBuilderFactory.get("updatePriceByTenPercentJob").incrementer(new RunIdIncrementer()).start(step1()).next(step2()).build();
+        return jobBuilderFactory.get("updatePriceByTenPercentJob").incrementer(new RunIdIncrementer()).start(step1()).next(step2()).next(step3()).build();
     }
 
     @Bean
@@ -98,18 +97,6 @@ public class BatchJobConfiguration {
         return writer;
     }*/
 
-
-//    @Bean
-//    public RepositoryItemReader<CatalogueItems> reader2() {
-//        HashMap<String, Sort.Direction> stringSortHashMap = new HashMap<>();
-//        stringSortHashMap.put("id", Sort.Direction.ASC);
-//        RepositoryItemReader<CatalogueItems> repositoryItemReader = new RepositoryItemReader<>();
-//        repositoryItemReader.setRepository(catalogueItemRepo);
-//        repositoryItemReader.setMethodName("findAll");
-//        repositoryItemReader.setPageSize(10);
-//        repositoryItemReader.setSort(stringSortHashMap);
-//        return repositoryItemReader;
-//    }
     @Bean
     public JdbcCursorItemReader<CatalogueItemJob> reader2() {
         JdbcCursorItemReader<CatalogueItemJob> reader2 = new JdbcCursorItemReader<>();
@@ -133,17 +120,45 @@ public class BatchJobConfiguration {
         return catalogueItemJobRepositoryItemWriter;
     }
 
-//    @Bean
-//    public Job job2() {
-//        return jobBuilderFactory.get("job2").incrementer(new RunIdIncrementer()).start(step2()).build();
-//    }
-
     @Bean
     public Step step2() {
         return stepBuilderFactory.get("step2")
                 .<CatalogueItemJob, CatalogueItemJob>chunk(10)
                 .reader(reader2())
                 .writer(writer2()).build();
+    }
+
+
+    @Bean
+    public RepositoryItemReader<CatalogueItems> reader3() {
+        RepositoryItemReader<CatalogueItems> reader = new RepositoryItemReader<>();
+        reader.setRepository(catalogueItemRepo);
+        reader.setMethodName("findAll");
+        reader.setSort(Collections.singletonMap("id", Sort.Direction.ASC));
+        return reader;
+    }
+
+    @Bean
+    public ItemProcessor<CatalogueItems, CatalogueItemJob> processor3() {
+        return new MyRepositoryItemProcessor();
+    }
+
+    @Bean
+    public RepositoryItemWriter<CatalogueItemJob> writer3() {
+        RepositoryItemWriter<CatalogueItemJob> writer = new RepositoryItemWriter<>();
+        writer.setRepository(catalogueItemJobRepo);
+        writer.setMethodName("save");
+        return writer;
+    }
+
+    @Bean
+    public Step step3() {
+        return this.stepBuilderFactory.get("step3")
+                .<CatalogueItems, CatalogueItemJob>chunk(10)
+                .reader(reader3())
+                .processor(processor3())
+                .writer(writer3())
+                .build();
     }
 
 
